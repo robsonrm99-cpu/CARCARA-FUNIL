@@ -17,6 +17,23 @@ const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value);
 };
 
+const getCategoryLimits = (category: CategoryType) => {
+  switch (category) {
+    case 'Veículo':
+      return { min: 20000, max: 500000, step: 5000, minLabel: 'R$ 20 mil', maxLabel: 'R$ 500 mil', default: 100000 };
+    case 'Imóvel':
+      return { min: 100000, max: 2000000, step: 10000, minLabel: 'R$ 100 mil', maxLabel: 'R$ 2 milhões', default: 250000 };
+    case 'Agrícola':
+      return { min: 100000, max: 5000000, step: 50000, minLabel: 'R$ 100 mil', maxLabel: 'R$ 5 milhões', default: 500000 };
+    case 'Pesados':
+      return { min: 100000, max: 2000000, step: 10000, minLabel: 'R$ 100 mil', maxLabel: 'R$ 2 milhões', default: 300000 };
+    case 'Investimento':
+      return { min: 50000, max: 5000000, step: 50000, minLabel: 'R$ 50 mil', maxLabel: 'R$ 5 milhões', default: 200000 };
+    default:
+      return { min: 50000, max: 2000000, step: 10000, minLabel: 'R$ 50 mil', maxLabel: 'R$ 2 milhões', default: 250000 };
+  }
+};
+
 const testimonials = [
   { text: "Consegui planejar a troca da minha frota pagando parcelas justas e sem juros abusivos.", author: "Roberto S., Empresário" },
   { text: "Achei que demorava muito, mas a estratégia que montaram me fez ser contemplada rápido!", author: "Mariana C., Médica" },
@@ -225,8 +242,8 @@ export default function App() {
                 <span className="text-[10px] md:text-xs font-bold text-slate-700 uppercase">Negativados</span>
               </div>
               <div className="flex items-center space-x-1.5 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-full border border-slate-100 shadow-sm">
-                <Zap size={16} className="text-brand-500" />
-                <span className="text-[10px] md:text-xs font-bold text-slate-700 uppercase">100% Grátis</span>
+                <Briefcase size={16} className="text-brand-500" />
+                <span className="text-[10px] md:text-xs font-bold text-slate-700 uppercase">Especialistas</span>
               </div>
             </div>
 
@@ -300,7 +317,11 @@ export default function App() {
                 <button
                   key={item.id}
                   onClick={() => {
-                    updateData({ category: item.id as CategoryType });
+                    const limits = getCategoryLimits(item.id as CategoryType);
+                    updateData({ 
+                      category: item.id as CategoryType,
+                      creditValue: limits.default
+                    });
                     handleNext();
                   }}
                   className={`group flex items-center p-4 border-2 rounded-2xl transition-all duration-200 text-left ${
@@ -322,6 +343,7 @@ export default function App() {
           </motion.div>
         );
       case 2:
+        const limits = getCategoryLimits(data.category);
         return (
           <motion.div
             key="step-2"
@@ -335,23 +357,23 @@ export default function App() {
               <p className="text-slate-500 font-medium">Quanto você precisa para realizar este objetivo?</p>
             </div>
             
-            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100">
               <div className="space-y-6">
-                <div className="text-5xl font-black text-brand-600 text-center tracking-tighter">
+                <div className={`font-black text-brand-600 text-center tracking-tighter ${data.creditValue >= 1000000 ? 'text-4xl sm:text-5xl' : 'text-5xl'}`}>
                   {formatCurrency(data.creditValue)}
                 </div>
                 <input
                   type="range"
-                  min={50000}
-                  max={2000000}
-                  step={10000}
+                  min={limits.min}
+                  max={limits.max}
+                  step={limits.step}
                   value={data.creditValue}
                   onChange={(e) => updateData({ creditValue: Number(e.target.value) })}
                   className="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-600"
                 />
                 <div className="flex justify-between text-xs font-bold text-slate-400">
-                  <span>R$ 50 mil</span>
-                  <span>R$ 2 milhões</span>
+                  <span>{limits.minLabel}</span>
+                  <span>{limits.maxLabel}</span>
                 </div>
               </div>
             </div>
